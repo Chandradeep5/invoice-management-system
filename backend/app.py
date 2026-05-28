@@ -6,6 +6,10 @@ from routes.upload_routes import upload_bp
 from routes.invoice_routes import invoice_bp
 from routes.dashboard_routes import dashboard_bp
 
+from routes.health_routes import health_bp
+
+
+
 
 app = Flask(__name__)
 
@@ -19,6 +23,8 @@ app.register_blueprint(invoice_bp)
 
 # Register dashboard blueprint
 app.register_blueprint(dashboard_bp)
+
+app.register_blueprint(health_bp)
 
 
 @app.route("/")

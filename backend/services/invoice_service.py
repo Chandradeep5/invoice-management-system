@@ -113,3 +113,25 @@ def paginate_invoices(page, limit):
     )
 
     return invoices
+
+# Update invoice
+def update_invoice(invoice_id, updated_data):
+
+    result = invoices_collection.update_one(
+        {"invoice_id": invoice_id},
+        {
+            "$set": updated_data
+        }
+    )
+
+    return result.modified_count
+
+# Delete invoice
+def delete_invoice(invoice_id):
+
+    result = invoices_collection.delete_one(
+        {"invoice_id": invoice_id}
+    )
+
+    return result.deleted_count
+

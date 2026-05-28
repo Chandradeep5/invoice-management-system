@@ -7,7 +7,9 @@ from services.invoice_service import (
     filter_invoices,
     search_invoices,
     sort_invoices,
-    paginate_invoices
+    paginate_invoices,
+    update_invoice,
+    delete_invoice
 )
 
 
@@ -261,6 +263,99 @@ def paginate_invoice_data():
             "limit": limit,
             "total_records": len(invoices),
             "data": invoices
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": str(error)
+        }), 500
+
+# Update invoice
+@invoice_bp.route(
+    "/api/invoices/<invoice_id>",
+    methods=["PUT"]
+)
+def update_invoice_data(invoice_id):
+    """
+    Update Invoice
+    ---
+    parameters:
+      - name: invoice_id
+        in: path
+        type: string
+        required: true
+
+    responses:
+      200:
+        description: Invoice updated successfully
+    """
+
+    try:
+
+        updated_data = request.json
+
+        modified_count = update_invoice(
+            invoice_id,
+            updated_data
+        )
+
+        if modified_count == 0:
+
+            return jsonify({
+                "success": False,
+                "message": "Invoice not found"
+            }), 404
+
+        return jsonify({
+            "success": True,
+            "message": "Invoice updated successfully"
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": str(error)
+        }), 500
+    
+# Delete invoice
+@invoice_bp.route(
+    "/api/invoices/<invoice_id>",
+    methods=["DELETE"]
+)
+def delete_invoice_data(invoice_id):
+    """
+    Delete Invoice
+    ---
+    parameters:
+      - name: invoice_id
+        in: path
+        type: string
+        required: true
+
+    responses:
+      200:
+        description: Invoice deleted successfully
+    """
+
+    try:
+
+        deleted_count = delete_invoice(
+            invoice_id
+        )
+
+        if deleted_count == 0:
+
+            return jsonify({
+                "success": False,
+                "message": "Invoice not found"
+            }), 404
+
+        return jsonify({
+            "success": True,
+            "message": "Invoice deleted successfully"
         })
 
     except Exception as error:
