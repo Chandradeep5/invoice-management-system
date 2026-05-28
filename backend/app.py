@@ -4,6 +4,8 @@ from flasgger import Swagger
 
 from routes.upload_routes import upload_bp
 from routes.invoice_routes import invoice_bp
+from routes.dashboard_routes import dashboard_bp
+
 
 app = Flask(__name__)
 
@@ -14,6 +16,10 @@ app.register_blueprint(upload_bp)
 
 # Register invoice blueprint 
 app.register_blueprint(invoice_bp)
+
+# Register dashboard blueprint
+app.register_blueprint(dashboard_bp)
+
 
 @app.route("/")
 def home():
