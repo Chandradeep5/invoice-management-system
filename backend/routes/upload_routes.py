@@ -38,14 +38,15 @@ def upload_file():
         file = request.files["file"]
 
         # Process uploaded file
-        records = process_uploaded_file(file)
+        result = process_uploaded_file(file)
 
         return jsonify({
             "success": True,
-            "message": "File processed successfully",
-            "total_records": len(records),
-            "data": records[:5]
+            "message": "Invoices uploaded successfully",
+            "statistics": result
         })
+
+
 
     except Exception as error:
 
