@@ -1,8 +1,11 @@
-from flask import Blueprint, jsonify
+
+from flask import Blueprint, jsonify, request
 
 from services.invoice_service import (
     get_all_invoices,
-    get_invoice_by_id
+    get_invoice_by_id,
+    filter_invoices,
+    search_invoices
 )
 
 invoice_bp = Blueprint("invoice_bp", __name__)
@@ -69,6 +72,101 @@ def fetch_invoice(invoice_id):
         return jsonify({
             "success": True,
             "data": invoice
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": str(error)
+        }), 500
+
+
+# Filter invoices
+@invoice_bp.route("/api/invoices/filter", methods=["GET"])
+def filter_invoice_data():
+    """
+    Filter Invoices
+    ---
+    parameters:
+      - name: location
+        in: query
+        type: string
+
+      - name: payment_status
+        in: query
+        type: string
+
+      - name: min_amount
+        in: query
+        type: number
+
+      - name: max_amount
+        in: query
+        type: number
+
+    responses:
+      200:
+        description: Filtered invoices
+    """
+
+    try:
+
+        filters = {
+            "location": request.args.get("location"),
+            "payment_status": request.args.get("payment_status"),
+            "min_amount": request.args.get("min_amount"),
+            "max_amount": request.args.get("max_amount")
+        }
+
+        invoices = filter_invoices(filters)
+
+        return jsonify({
+            "success": True,
+            "total_records": len(invoices),
+            "data": invoices
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": str(error)
+        }), 500
+
+# Search invoices
+@invoice_bp.route("/api/invoices/search", methods=["GET"])
+def search_invoice_data():
+    """
+    Search Invoices
+    ---
+    parameters:
+      - name: keyword
+        in: query
+        type: string
+        required: true
+
+    responses:
+      200:
+        description: Search results
+    """
+
+    try:
+
+        keyword = request.args.get("keyword")
+
+        if not keyword:
+            return jsonify({
+                "success": False,
+                "message": "Keyword is required"
+            }), 400
+
+        invoices = search_invoices(keyword)
+
+        return jsonify({
+            "success": True,
+            "total_records": len(invoices),
+            "data": invoices
         })
 
     except Exception as error:
