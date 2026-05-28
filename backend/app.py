@@ -10,6 +10,11 @@ from routes.health_routes import health_bp
 
 from routes.export_routes import export_bp
 
+from routes.upload_log_routes import (
+    upload_log_bp
+)
+
+
 
 
 
@@ -29,6 +34,10 @@ app.register_blueprint(dashboard_bp)
 app.register_blueprint(export_bp)
 
 app.register_blueprint(health_bp)
+
+app.register_blueprint(
+    upload_log_bp
+)
 
 
 @app.route("/")

@@ -110,6 +110,19 @@ def filter_invoice_data():
         in: query
         type: number
 
+      - name: start_date
+        in: query
+        type: string
+
+      - name: end_date
+        in: query
+        type: string
+
+      - name: due_before
+        in: query
+        type: string
+
+
     responses:
       200:
         description: Filtered invoices
@@ -121,7 +134,11 @@ def filter_invoice_data():
             "location": request.args.get("location"),
             "payment_status": request.args.get("payment_status"),
             "min_amount": request.args.get("min_amount"),
-            "max_amount": request.args.get("max_amount")
+            "max_amount": request.args.get("max_amount"),
+            "start_date": request.args.get("start_date"),
+            "end_date": request.args.get("end_date"),
+            "due_before": request.args.get("due_before")
+
         }
 
         invoices = filter_invoices(filters)

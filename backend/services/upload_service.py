@@ -2,7 +2,7 @@
 import os
 
 from werkzeug.utils import secure_filename
-
+from datetime import datetime
 from utils.file_handler import read_file
 from utils.data_cleaner import clean_invoice_records
 
@@ -11,6 +11,11 @@ from utils.validators import (
     validate_file_size
 )
 
+
+
+from services.upload_log_service import (
+    create_upload_log
+)
 from database.db import invoices_collection
 
 from utils.logger import logger
@@ -100,6 +105,27 @@ def process_uploaded_file(file):
 
             logger.info(
                 f"{inserted_count} invoices inserted successfully"
+            )
+
+            # Create upload log
+            upload_log = {
+
+                "file_name": filename,
+
+                "uploaded_at":
+                    datetime.now(),
+
+                "inserted_records":
+                    inserted_count,
+
+                "skipped_records":
+                    len(records) - inserted_count,
+
+                "status": "Success"
+            }
+
+            create_upload_log(
+                upload_log
             )
 
         return {

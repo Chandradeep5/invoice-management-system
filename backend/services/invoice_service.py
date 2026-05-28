@@ -51,6 +51,22 @@ def filter_invoices(filters):
 
         query["amount"]["$lte"] = float(filters["max_amount"])
 
+    # Filter by invoice date range
+    if filters.get("start_date") and filters.get("end_date"):
+
+        query["invoice_date"] = {
+            "$gte": filters["start_date"],
+            "$lte": filters["end_date"]
+        }
+
+    # Filter by due date
+    if filters.get("due_before"):
+
+        query["due_date"] = {
+            "$lte": filters["due_before"]
+        }
+
+
     invoices = list(
         invoices_collection.find(query, {"_id": 0})
     )

@@ -17,3 +17,5 @@ db = client[os.getenv("DATABASE_NAME")]
 
 # Collections
 invoices_collection = db["invoices"]
+
+upload_logs_collection = db["upload_logs"]
