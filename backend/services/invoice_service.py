@@ -83,3 +83,33 @@ def search_invoices(keyword):
     )
 
     return invoices
+
+
+# Sort invoices
+def sort_invoices(field, order):
+
+    sort_order = 1
+
+    if order == "desc":
+        sort_order = -1
+
+    invoices = list(
+        invoices_collection.find({}, {"_id": 0})
+        .sort(field, sort_order)
+    )
+
+    return invoices
+
+
+# Paginate invoices
+def paginate_invoices(page, limit):
+
+    skip = (page - 1) * limit
+
+    invoices = list(
+        invoices_collection.find({}, {"_id": 0})
+        .skip(skip)
+        .limit(limit)
+    )
+
+    return invoices

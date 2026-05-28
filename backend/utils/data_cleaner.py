@@ -10,13 +10,7 @@ def clean_invoice_records(records):
         record = {k.strip(): v for k, v in record.items()}
 
         # Required fields check
-        required_fields = [
-            "invoice_id",
-            "customer_name",
-            "amount",
-            "payment_status",
-            "location"
-        ]
+        required_fields = [ "invoice_id", "customer_name", "amount", "payment_status", "location", "invoice_date", "payment_method" ]
 
         missing_fields = [
             field for field in required_fields

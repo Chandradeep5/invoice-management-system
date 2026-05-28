@@ -5,8 +5,11 @@ from services.invoice_service import (
     get_all_invoices,
     get_invoice_by_id,
     filter_invoices,
-    search_invoices
+    search_invoices,
+    sort_invoices,
+    paginate_invoices
 )
+
 
 invoice_bp = Blueprint("invoice_bp", __name__)
 
@@ -165,6 +168,97 @@ def search_invoice_data():
 
         return jsonify({
             "success": True,
+            "total_records": len(invoices),
+            "data": invoices
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": str(error)
+        }), 500
+
+# Sort invoices
+@invoice_bp.route("/api/invoices/sort", methods=["GET"])
+def sort_invoice_data():
+    """
+    Sort Invoices
+    ---
+    parameters:
+      - name: field
+        in: query
+        type: string
+        required: true
+
+      - name: order
+        in: query
+        type: string
+        enum: [asc, desc]
+
+    responses:
+      200:
+        description: Sorted invoices
+    """
+
+    try:
+
+        field = request.args.get("field")
+        order = request.args.get("order", "asc")
+
+        if not field:
+            return jsonify({
+                "success": False,
+                "message": "Field is required"
+            }), 400
+
+        invoices = sort_invoices(field, order)
+
+        return jsonify({
+            "success": True,
+            "total_records": len(invoices),
+            "data": invoices
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": str(error)
+        }), 500
+
+
+# Paginate invoices
+@invoice_bp.route("/api/invoices/paginate", methods=["GET"])
+def paginate_invoice_data():
+    """
+    Paginate Invoices
+    ---
+    parameters:
+      - name: page
+        in: query
+        type: integer
+
+      - name: limit
+        in: query
+        type: integer
+
+    responses:
+      200:
+        description: Paginated invoices
+    """
+
+    try:
+
+        page = int(request.args.get("page", 1))
+        limit = int(request.args.get("limit", 10))
+
+        invoices = paginate_invoices(page, limit)
+
+        return jsonify({
+            "success": True,
+            "page": page,
+            "limit": limit,
             "total_records": len(invoices),
             "data": invoices
         })
