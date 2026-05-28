@@ -8,6 +8,8 @@ from routes.dashboard_routes import dashboard_bp
 
 from routes.health_routes import health_bp
 
+from routes.export_routes import export_bp
+
 
 
 
@@ -23,6 +25,8 @@ app.register_blueprint(invoice_bp)
 
 # Register dashboard blueprint
 app.register_blueprint(dashboard_bp)
+
+app.register_blueprint(export_bp)
 
 app.register_blueprint(health_bp)
 
