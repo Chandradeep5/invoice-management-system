@@ -19,8 +19,10 @@ dashboard_bp = Blueprint(
 )
 def dashboard_stats():
     """
-    Dashboard Statistics
+    📊 Dashboard Statistics
     ---
+    tags:
+        - Dashboard
     responses:
       200:
         description: Dashboard statistics
@@ -50,8 +52,10 @@ def dashboard_stats():
 )
 def revenue_by_location():
     """
-    Revenue By Location
+    📊 Revenue By Location
     ---
+    tags:
+        - Dashboard
     responses:
       200:
         description: Revenue grouped by location
@@ -81,8 +85,10 @@ def revenue_by_location():
 )
 def payment_summary():
     """
-    Payment Summary
+    📊 Payment Summary
     ---
+    tags:
+        - Dashboard
     responses:
       200:
         description: Payment status summary

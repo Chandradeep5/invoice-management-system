@@ -6,20 +6,32 @@ import os
 # Load environment variables
 load_dotenv()
 
-# Get Mongo URI
+# Read Environment Variables
 MONGO_URI = os.getenv("MONGO_URI")
+DATABASE_NAME = os.getenv("DATABASE_NAME")
 
-# Create Mongo client
+# Validation
+if not MONGO_URI:
+    raise Exception(
+        "MONGO_URI not found in .env file"
+    )
+
+if not DATABASE_NAME:
+    raise Exception(
+        "DATABASE_NAME not found in .env file"
+    )
+
+# Create Mongo Client
 client = MongoClient(MONGO_URI)
 
-# Select database
-db = client[os.getenv("DATABASE_NAME")]
+# Select Database
+db = client[DATABASE_NAME]
 
 # Collections
 invoices_collection = db["invoices"]
-
 upload_logs_collection = db["upload_logs"]
 
+# Indexes
 invoices_collection.create_index(
     "invoice_id",
     unique=True

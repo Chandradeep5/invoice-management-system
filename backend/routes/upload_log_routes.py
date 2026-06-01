@@ -20,6 +20,8 @@ def fetch_upload_logs():
     """
     Fetch Upload Logs
     ---
+    tags:
+        - Upload logs
     responses:
       200:
         description: Upload logs fetched successfully
@@ -52,6 +54,8 @@ def fetch_latest_upload_log():
     """
     Fetch Latest Upload Log
     ---
+    tags:
+        - Upload logs
     responses:
       200:
         description: Latest upload log

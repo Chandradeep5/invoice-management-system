@@ -15,6 +15,8 @@ def health_check():
     """
     Health Check API
     ---
+    tags:
+        - Health 
     responses:
       200:
         description: Server health check

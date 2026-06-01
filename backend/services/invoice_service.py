@@ -2,11 +2,17 @@
 from database.db import invoices_collection
 
 
-# Fetch all invoices
-def get_all_invoices():
+def get_all_invoices(page=1, limit=20):
+
+    skip = (page - 1) * limit
 
     invoices = list(
-        invoices_collection.find({}, {"_id": 0})
+        invoices_collection.find(
+            {},
+            {"_id": 0}
+        )
+        .skip(skip)
+        .limit(limit)
     )
 
     return invoices
@@ -150,4 +156,16 @@ def delete_invoice(invoice_id):
     )
 
     return result.deleted_count
+
+# Delete all invoices
+def delete_all_invoices():
+
+    result = invoices_collection.delete_many({})
+
+    return result.deleted_count
+
+
+def get_total_invoice_count():
+
+    return invoices_collection.count_documents({})
 

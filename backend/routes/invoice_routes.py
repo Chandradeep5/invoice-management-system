@@ -1,15 +1,18 @@
 
 from flask import Blueprint, jsonify, request
-
+import time
 from services.invoice_service import (
     get_all_invoices,
+    get_total_invoice_count,
     get_invoice_by_id,
     filter_invoices,
     search_invoices,
     sort_invoices,
     paginate_invoices,
     update_invoice,
-    delete_invoice
+    delete_invoice,
+    delete_all_invoices,
+    get_total_invoice_count
 )
 
 
@@ -22,18 +25,51 @@ def fetch_all_invoices():
     """
     Fetch All Invoices
     ---
+    tags:
+        - Invoice
+
+    parameters:
+        - name: page
+          in: query
+          type: integer
+          default: 1
+
+        - name: limit
+          in: query
+          type: integer
+          default: 20
+          
     responses:
-      200:
-        description: List of all invoices
+        200:
+            description: List of all invoices
     """
 
     try:
 
-        invoices = get_all_invoices()
+        page = int(
+            request.args.get("page",1)
+        )
+
+        limit = int(
+            request.args.get("limit",20)
+        )
+        invoices = get_all_invoices(
+            page,
+            limit
+        )
+        total_records = get_total_invoice_count()
 
         return jsonify({
             "success": True,
-            "total_records": len(invoices),
+
+            "page": page,
+
+            "limit": limit,
+
+            "records_returned": len(invoices),
+
+            "total_records": total_records,
+
             "data": invoices
         })
 
@@ -45,12 +81,45 @@ def fetch_all_invoices():
         }), 500
 
 
+# Count invoices
+@invoice_bp.route("/api/invoices/count", methods=["GET"])
+def count_invoices():
+    """
+    Count Invoices
+    ---
+    tags:
+        - Invoice
+
+    responses:
+      200:
+        description: Total invoice count
+    """
+
+    try:
+
+        total_records = get_total_invoice_count()
+
+        return jsonify({
+            "success": True,
+            "total_invoices": total_records
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": str(error)
+        }), 500
+
 # Fetch invoice by invoice ID
 @invoice_bp.route("/api/invoices/<invoice_id>", methods=["GET"])
 def fetch_invoice(invoice_id):
     """
-    Fetch Invoice By ID
+    Search Invoice By ID
     ---
+    tags:
+        - Invoice
+        
     parameters:
       - name: invoice_id
         in: path
@@ -70,96 +139,45 @@ def fetch_invoice(invoice_id):
 
         if not invoice:
             return jsonify({
-                "success": False,
-                "message": "Invoice not found"
-            }), 404
-        
-        formatted_invoice = {
-
-            "invoice_id":
-                invoice.get("invoice_id"),
-
-            "customer_name":
-                invoice.get("customer_name"),
-
-            "customer_email":
-                invoice.get("customer_email"),
-
-            "customer_phone":
-                invoice.get("customer_phone"),
-
-            "vendor_name":
-                invoice.get("vendor_name"),
-
-            "gst_number":
-                invoice.get("gst_number"),
-
-            "invoice_date":
-                invoice.get("invoice_date"),
-
-            "due_date":
-                invoice.get("due_date"),
-
-            "amount":
-                invoice.get("amount"),
-
-            "tax_amount":
-                invoice.get("tax_amount"),
-
-            "total_amount":
-                invoice.get("total_amount"),
-
-            "payment_status":
-                invoice.get("payment_status"),
-
-            "payment_method":
-                invoice.get("payment_method"),
-
-            "location":
-                invoice.get("location"),
-
-            "currency":
-                invoice.get("currency"),
-
-            "category":
-                invoice.get("category")
-        }
+            "success": False,
+            "message": "Invoice not found"
+        }), 404
 
         return jsonify({
-    "success": True,
-    "message": "Invoice fetched successfully",
+            "success": True,
+            "message": "Invoice fetched successfully",
 
-    "invoice_details": {
-        "invoice_id": invoice.get("invoice_id"),
-        "invoice_date": invoice.get("invoice_date"),
-        "due_date": invoice.get("due_date")
-    },
+            "invoice": {
+                "invoice_id": invoice.get("invoice_id"),
+                "invoice_date": invoice.get("invoice_date"),
+                "due_date": invoice.get("due_date")
+            },
 
-    "customer_details": {
-        "customer_name": invoice.get("customer_name"),
-        "customer_email": invoice.get("customer_email"),
-        "customer_phone": invoice.get("customer_phone")
-    },
+            "customer": {
+                "customer_name": invoice.get("customer_name"),
+                "customer_email": invoice.get("customer_email"),
+                "customer_phone": invoice.get("customer_phone")
+            },
 
-    "vendor_details": {
-        "vendor_name": invoice.get("vendor_name"),
-        "gst_number": invoice.get("gst_number")
-    },
+            "vendor": {
+                "vendor_name": invoice.get("vendor_name"),
+                "gst_number": invoice.get("gst_number")
+            },
 
-    "payment_details": {
-        "amount": invoice.get("amount"),
-        "tax_amount": invoice.get("tax_amount"),
-        "total_amount": invoice.get("total_amount"),
-        "payment_status": invoice.get("payment_status"),
-        "payment_method": invoice.get("payment_method")
-    },
+            "payment": {
+                "amount": invoice.get("amount"),
+                "tax_amount": invoice.get("tax_amount"),
+                "total_amount": invoice.get("total_amount"),
+                "payment_status": invoice.get("payment_status"),
+                "payment_method": invoice.get("payment_method")
+            },
 
-    "business_details": {
-        "category": invoice.get("category"),
-        "currency": invoice.get("currency"),
-        "location": invoice.get("location")
-    }
-})
+            "business": {
+                "category": invoice.get("category"),
+                "currency": invoice.get("currency"),
+                "location": invoice.get("location")
+            }
+        })
     except Exception as error:
 
         return jsonify({
@@ -174,6 +192,9 @@ def filter_invoice_data():
     """
     Filter Invoices
     ---
+    tags:
+        - Invoice
+        
     parameters:
       - name: location
         in: query
@@ -226,7 +247,7 @@ def filter_invoice_data():
 
         return jsonify({
             "success": True,
-            "total_records": len(invoices),
+            "records_found": len(invoices),
             "data": invoices
         })
 
@@ -243,6 +264,9 @@ def search_invoice_data():
     """
     Search Invoices
     ---
+    tags:
+        - Invoice
+        
     parameters:
       - name: keyword
         in: query
@@ -268,6 +292,7 @@ def search_invoice_data():
 
         return jsonify({
             "success": True,
+            "keyword":keyword,
             "total_records": len(invoices),
             "data": invoices
         })
@@ -285,6 +310,9 @@ def sort_invoice_data():
     """
     Sort Invoices
     ---
+    tags:
+        - Invoice
+
     parameters:
       - name: field
         in: query
@@ -303,8 +331,22 @@ def sort_invoice_data():
 
     try:
 
+        start_time = time.time()
+
         field = request.args.get("field")
         order = request.args.get("order", "asc")
+
+        allowed_fields = [
+            "invoice_id",
+            "customer_name",
+            "amount",
+            "tax_amount",
+            "total_amount",
+            "invoice_date",
+            "due_date",
+            "location",
+            "payment_status"
+        ]
 
         if not field:
             return jsonify({
@@ -312,11 +354,31 @@ def sort_invoice_data():
                 "message": "Field is required"
             }), 400
 
+        if field not in allowed_fields:
+            return jsonify({
+                "success": False,
+                "message": "Invalid sort field"
+            }), 400
+
+        if order not in ["asc", "desc"]:
+            return jsonify({
+                "success": False,
+                "message": "Order must be asc or desc"
+            }), 400
+
         invoices = sort_invoices(field, order)
+
+        execution_time = round(
+            time.time() - start_time,
+            3
+        )
 
         return jsonify({
             "success": True,
-            "total_records": len(invoices),
+            "sorted_by": field,
+            "sort_order": order,
+            "records_found": len(invoices),
+            "execution_time_seconds": execution_time,
             "data": invoices
         })
 
@@ -327,13 +389,15 @@ def sort_invoice_data():
             "message": str(error)
         }), 500
 
-
 # Paginate invoices
 @invoice_bp.route("/api/invoices/paginate", methods=["GET"])
 def paginate_invoice_data():
     """
     Paginate Invoices
     ---
+    tags:
+        - Invoice
+        
     parameters:
       - name: page
         in: query
@@ -349,9 +413,11 @@ def paginate_invoice_data():
     """
 
     try:
+        if page < 1:
+            page = 1
 
-        page = int(request.args.get("page", 1))
-        limit = int(request.args.get("limit", 10))
+        if limit < 1 or limit > 100:
+            limit = 20
 
         invoices = paginate_invoices(page, limit)
 
@@ -379,6 +445,9 @@ def update_invoice_data(invoice_id):
     """
     Update Invoice
     ---
+    tags:
+        - Invoice
+        
     parameters:
       - name: invoice_id
         in: path
@@ -427,6 +496,9 @@ def delete_invoice_data(invoice_id):
     """
     Delete Invoice
     ---
+    tags:
+        - Delete Invoice
+        
     parameters:
       - name: invoice_id
         in: path
@@ -454,6 +526,57 @@ def delete_invoice_data(invoice_id):
         return jsonify({
             "success": True,
             "message": "Invoice deleted successfully"
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": str(error)
+        }), 500
+
+
+# Delete all invoices
+@invoice_bp.route(
+    "/api/invoices",
+    methods=["DELETE"]
+)
+def delete_all_invoice_data():
+    """
+    Delete All Invoices
+    ---
+    tags:
+        - Invoice
+
+    parameters:
+        - name: confirm
+          in: query
+          type: string
+          required: true
+          default: YES
+
+    responses:
+        200:
+            description: All invoices deleted successfully
+    """
+
+    try:
+
+        confirm = request.args.get("confirm")
+
+        if confirm != "YES":
+
+            return jsonify({
+                "success": False,
+                "message": "Pass confirm=YES to delete all invoices"
+            }), 400
+
+        deleted_count = delete_all_invoices()
+
+        return jsonify({
+            "success": True,
+            "message": "All invoices deleted successfully",
+            "deleted_records": deleted_count
         })
 
     except Exception as error:

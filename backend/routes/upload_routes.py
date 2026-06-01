@@ -5,25 +5,35 @@ from services.upload_service import process_uploaded_file
 
 upload_bp = Blueprint("upload_bp", __name__)
 
-@upload_bp.route("/api/upload", methods=["POST"])
+@upload_bp.route(
+    "/api/upload",
+    methods=["POST"]
+)
 def upload_file():
     """
-    Upload Invoice File
+    📤 Bulk Upload Invoice Data
     ---
+    tags:
+        - Upload
     consumes:
       - multipart/form-data
+
     parameters:
       - name: file
         in: formData
         type: file
         required: true
-        description: Upload CSV, XLSX, or JSON file
+        description: Upload CSV, XLSX or JSON invoice file
 
     responses:
       200:
         description: File uploaded successfully
+
       400:
-        description: Invalid request
+        description: Invalid file
+
+      500:
+        description: Internal server error
     """
 
     try:

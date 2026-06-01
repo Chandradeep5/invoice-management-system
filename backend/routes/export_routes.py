@@ -16,8 +16,12 @@ export_bp = Blueprint(
 )
 def export_csv():
     """
-    Export Invoices to CSV
+    📁 Export Invoices to CSV
     ---
+
+    tags:
+        - Export
+    
     responses:
       200:
         description: CSV exported successfully
