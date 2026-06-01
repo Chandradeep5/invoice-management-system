@@ -8,7 +8,7 @@ def validate_file_extension(file_extension):
 
     return True
 
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 5 MB
 
 
 def validate_file_size(file):

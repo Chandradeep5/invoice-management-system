@@ -73,12 +73,93 @@ def fetch_invoice(invoice_id):
                 "success": False,
                 "message": "Invoice not found"
             }), 404
+        
+        formatted_invoice = {
+
+            "invoice_id":
+                invoice.get("invoice_id"),
+
+            "customer_name":
+                invoice.get("customer_name"),
+
+            "customer_email":
+                invoice.get("customer_email"),
+
+            "customer_phone":
+                invoice.get("customer_phone"),
+
+            "vendor_name":
+                invoice.get("vendor_name"),
+
+            "gst_number":
+                invoice.get("gst_number"),
+
+            "invoice_date":
+                invoice.get("invoice_date"),
+
+            "due_date":
+                invoice.get("due_date"),
+
+            "amount":
+                invoice.get("amount"),
+
+            "tax_amount":
+                invoice.get("tax_amount"),
+
+            "total_amount":
+                invoice.get("total_amount"),
+
+            "payment_status":
+                invoice.get("payment_status"),
+
+            "payment_method":
+                invoice.get("payment_method"),
+
+            "location":
+                invoice.get("location"),
+
+            "currency":
+                invoice.get("currency"),
+
+            "category":
+                invoice.get("category")
+        }
 
         return jsonify({
-            "success": True,
-            "data": invoice
-        })
+    "success": True,
+    "message": "Invoice fetched successfully",
 
+    "invoice_details": {
+        "invoice_id": invoice.get("invoice_id"),
+        "invoice_date": invoice.get("invoice_date"),
+        "due_date": invoice.get("due_date")
+    },
+
+    "customer_details": {
+        "customer_name": invoice.get("customer_name"),
+        "customer_email": invoice.get("customer_email"),
+        "customer_phone": invoice.get("customer_phone")
+    },
+
+    "vendor_details": {
+        "vendor_name": invoice.get("vendor_name"),
+        "gst_number": invoice.get("gst_number")
+    },
+
+    "payment_details": {
+        "amount": invoice.get("amount"),
+        "tax_amount": invoice.get("tax_amount"),
+        "total_amount": invoice.get("total_amount"),
+        "payment_status": invoice.get("payment_status"),
+        "payment_method": invoice.get("payment_method")
+    },
+
+    "business_details": {
+        "category": invoice.get("category"),
+        "currency": invoice.get("currency"),
+        "location": invoice.get("location")
+    }
+})
     except Exception as error:
 
         return jsonify({
