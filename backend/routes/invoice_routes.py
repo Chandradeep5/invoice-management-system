@@ -186,6 +186,8 @@ def fetch_invoice(invoice_id):
         }), 500
 
 
+import time
+
 # Filter invoices
 @invoice_bp.route("/api/invoices/filter", methods=["GET"])
 def filter_invoice_data():
@@ -194,7 +196,7 @@ def filter_invoice_data():
     ---
     tags:
         - Invoice
-        
+
     parameters:
       - name: location
         in: query
@@ -224,6 +226,15 @@ def filter_invoice_data():
         in: query
         type: string
 
+      - name: page
+        in: query
+        type: integer
+        default: 1
+
+      - name: limit
+        in: query
+        type: integer
+        default: 20
 
     responses:
       200:
@@ -231,6 +242,22 @@ def filter_invoice_data():
     """
 
     try:
+
+        start_time = time.time()
+
+        page = int(
+            request.args.get("page", 1)
+        )
+
+        limit = int(
+            request.args.get("limit", 20)
+        )
+
+        if page < 1:
+            page = 1
+
+        if limit < 1 or limit > 100:
+            limit = 20
 
         filters = {
             "location": request.args.get("location"),
@@ -240,14 +267,25 @@ def filter_invoice_data():
             "start_date": request.args.get("start_date"),
             "end_date": request.args.get("end_date"),
             "due_before": request.args.get("due_before")
-
         }
 
-        invoices = filter_invoices(filters)
+        invoices = filter_invoices(
+            filters,
+            page,
+            limit
+        )
+
+        execution_time = round(
+            time.time() - start_time,
+            3
+        )
 
         return jsonify({
             "success": True,
+            "page": page,
+            "limit": limit,
             "records_found": len(invoices),
+            "execution_time_seconds": execution_time,
             "data": invoices
         })
 
@@ -257,6 +295,9 @@ def filter_invoice_data():
             "success": False,
             "message": str(error)
         }), 500
+    
+
+import time
 
 # Search invoices
 @invoice_bp.route("/api/invoices/search", methods=["GET"])
@@ -266,12 +307,22 @@ def search_invoice_data():
     ---
     tags:
         - Invoice
-        
+
     parameters:
       - name: keyword
         in: query
         type: string
         required: true
+
+      - name: page
+        in: query
+        type: integer
+        default: 1
+
+      - name: limit
+        in: query
+        type: integer
+        default: 20
 
     responses:
       200:
@@ -280,7 +331,23 @@ def search_invoice_data():
 
     try:
 
+        start_time = time.time()
+
         keyword = request.args.get("keyword")
+
+        page = int(
+            request.args.get("page", 1)
+        )
+
+        limit = int(
+            request.args.get("limit", 20)
+        )
+
+        if page < 1:
+            page = 1
+
+        if limit < 1 or limit > 100:
+            limit = 20
 
         if not keyword:
             return jsonify({
@@ -288,12 +355,24 @@ def search_invoice_data():
                 "message": "Keyword is required"
             }), 400
 
-        invoices = search_invoices(keyword)
+        invoices = search_invoices(
+            keyword,
+            page,
+            limit
+        )
+
+        execution_time = round(
+            time.time() - start_time,
+            3
+        )
 
         return jsonify({
             "success": True,
-            "keyword":keyword,
-            "total_records": len(invoices),
+            "keyword": keyword,
+            "page": page,
+            "limit": limit,
+            "records_found": len(invoices),
+            "execution_time_seconds": execution_time,
             "data": invoices
         })
 
@@ -324,6 +403,16 @@ def sort_invoice_data():
         type: string
         enum: [asc, desc]
 
+      - name: page
+        in: query
+        type: integer
+        default: 1
+
+      - name: limit
+        in: query
+        type: integer
+        default: 20
+
     responses:
       200:
         description: Sorted invoices
@@ -335,6 +424,20 @@ def sort_invoice_data():
 
         field = request.args.get("field")
         order = request.args.get("order", "asc")
+
+        page = int(
+            request.args.get("page", 1)
+        )
+
+        limit = int(
+            request.args.get("limit", 20)
+        )
+
+        if page < 1:
+            page = 1
+
+        if limit < 1 or limit > 100:
+            limit = 20
 
         allowed_fields = [
             "invoice_id",
@@ -366,7 +469,12 @@ def sort_invoice_data():
                 "message": "Order must be asc or desc"
             }), 400
 
-        invoices = sort_invoices(field, order)
+        invoices = sort_invoices(
+            field,
+            order,
+            page,
+            limit
+        )
 
         execution_time = round(
             time.time() - start_time,
@@ -377,6 +485,8 @@ def sort_invoice_data():
             "success": True,
             "sorted_by": field,
             "sort_order": order,
+            "page": page,
+            "limit": limit,
             "records_found": len(invoices),
             "execution_time_seconds": execution_time,
             "data": invoices
@@ -388,7 +498,6 @@ def sort_invoice_data():
             "success": False,
             "message": str(error)
         }), 500
-
 # Paginate invoices
 @invoice_bp.route("/api/invoices/paginate", methods=["GET"])
 def paginate_invoice_data():
@@ -447,21 +556,104 @@ def update_invoice_data(invoice_id):
     ---
     tags:
         - Invoice
-        
+
     parameters:
-      - name: invoice_id
-        in: path
-        type: string
-        required: true
+        - name: invoice_id
+          in: path
+          type: string
+          required: true
+          description: Invoice ID to update
+
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+                customer_name:
+                    type: string
+                    example: Rahul Sharma
+
+                customer_email:
+                    type: string
+                    example: rahul@gmail.com
+
+                customer_phone:
+                    type: string
+                    example: "9876543210"
+
+                vendor_name:
+                    type: string
+                    example: ABC Pvt Ltd
+
+                gst_number:
+                    type: string
+                    example: GST12345
+
+                amount:
+                    type: number
+                    example: 2500
+
+                tax_amount:
+                    type: number
+                    example: 450
+
+                total_amount:
+                    type: number
+                    example: 2950
+
+                payment_status:
+                    type: string
+                    example: Paid
+
+                payment_method:
+                    type: string
+                    example: UPI
+
+                invoice_date:
+                    type: string
+                    example: "2026-06-01"
+
+                due_date:
+                    type: string
+                    example: "2026-06-15"
+
+                location:
+                    type: string
+                    example: Bangalore
+
+                currency:
+                    type: string
+                    example: INR
+
+                category:
+                    type: string
+                    example: Electronics
 
     responses:
-      200:
-        description: Invoice updated successfully
+        200:
+            description: Invoice updated successfully
+
+        400:
+            description: Invalid request
+
+        404:
+            description: Invoice not found
+
+        500:
+            description: Internal server error
     """
+
 
     try:
 
-        updated_data = request.json
+        updated_data = request.get_json()
+
+        if not updated_data:
+            return jsonify({
+                "success": False,
+                "message": "No update data provided"
+            }), 400
 
         modified_count = update_invoice(
             invoice_id,
@@ -492,6 +684,7 @@ def update_invoice_data(invoice_id):
     "/api/invoices/<invoice_id>",
     methods=["DELETE"]
 )
+
 def delete_invoice_data(invoice_id):
     """
     Delete Invoice

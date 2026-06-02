@@ -2,7 +2,10 @@
 from flask import Flask
 from flasgger import Swagger
 import os
+from flask import redirect
 
+from flask import render_template
+from flask import render_template
 from routes.upload_routes import upload_bp
 from routes.invoice_routes import invoice_bp
 from routes.dashboard_routes import dashboard_bp
@@ -66,6 +69,46 @@ def home():
         "message": "Invoice Management System API Running"
     }
 
+@app.route("/update-invoice")
+def update_invoice_page():
+
+    return render_template(
+        "update_invoice.html"
+    )
+
+@app.route("/api/ui/update-invoice")
+def update_invoice_ui():
+    """
+    Update Invoice UI
+    ---
+    tags:
+      - UI Pages
+
+    responses:
+      302:
+        description: Redirect to Update Invoice Page
+    """
+
+    return redirect("/update-invoice")
+
+@app.route("/portal")
+def portal():
+
+    return """
+    <h1>Invoice Management System</h1>
+
+    <br>
+
+    <a href='/apidocs'>
+        Swagger APIs
+    </a>
+
+    <br><br>
+
+    <a href='/update-invoice'>
+        Update Invoice Page
+    </a>
+    """
 
 if __name__ == "__main__":
 

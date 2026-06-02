@@ -1,7 +1,9 @@
-__pycache__
-.git
+
+venv/
+__pycache__/
+.git/
 .env
-uploads
-exports
-logs
+uploads/
+exports/
+logs/
 *.pyc

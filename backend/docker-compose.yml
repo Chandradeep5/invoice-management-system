@@ -16,3 +16,4 @@ services:
       - .env
 
     restart: unless-stopped
+

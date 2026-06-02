@@ -30,7 +30,12 @@ def get_invoice_by_id(invoice_id):
 
 
 # Filter invoices
-def filter_invoices(filters):
+def filter_invoices(
+    filters,
+    page=1,
+    limit=20
+):
+    skip = (page - 1) * limit
 
     query = {}
 
@@ -74,14 +79,20 @@ def filter_invoices(filters):
 
 
     invoices = list(
-        invoices_collection.find(query, {"_id": 0})
+        invoices_collection.find(
+            query,
+            {"_id": 0}
+        )
+        .skip(skip)
+        .limit(limit)
     )
 
     return invoices
 
 
-# Search invoices
-def search_invoices(keyword):
+def search_invoices(keyword, page=1, limit=20):
+
+    skip = (page - 1) * limit
 
     query = {
         "$or": [
@@ -101,27 +112,41 @@ def search_invoices(keyword):
     }
 
     invoices = list(
-        invoices_collection.find(query, {"_id": 0})
+        invoices_collection.find(
+            query,
+            {"_id": 0}
+        )
+        .skip(skip)
+        .limit(limit)
     )
 
     return invoices
 
-
-# Sort invoices
-def sort_invoices(field, order):
+def sort_invoices(
+    field,
+    order,
+    page=1,
+    limit=20
+):
 
     sort_order = 1
 
     if order == "desc":
         sort_order = -1
 
+    skip = (page - 1) * limit
+
     invoices = list(
-        invoices_collection.find({}, {"_id": 0})
+        invoices_collection.find(
+            {},
+            {"_id": 0}
+        )
         .sort(field, sort_order)
+        .skip(skip)
+        .limit(limit)
     )
 
     return invoices
-
 
 # Paginate invoices
 def paginate_invoices(page, limit):

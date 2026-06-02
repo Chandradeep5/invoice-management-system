@@ -7,6 +7,8 @@ from datetime import datetime
 from utils.file_handler import read_file
 from utils.data_cleaner import clean_invoice_records
 
+from pymongo.errors import BulkWriteError
+
 from utils.chunk_processor import (
     process_csv_in_chunks
 )
@@ -59,16 +61,7 @@ def process_uploaded_file(file):
 
         file.save(file_path)
 
-        # Existing invoice IDs
-        existing_invoice_ids = {
 
-            invoice["invoice_id"]
-
-            for invoice in invoices_collection.find(
-                {},
-                {"invoice_id": 1}
-            )
-        }
 
         total_records = 0
         cleaned_count = 0
@@ -79,7 +72,7 @@ def process_uploaded_file(file):
 
             for chunk in process_csv_in_chunks(
                 file_path,
-                chunk_size=1000
+                chunk_size=10000
             ):
 
                 records = chunk.to_dict(
@@ -98,35 +91,31 @@ def process_uploaded_file(file):
                     cleaned_records
                 )
 
-                new_records = [
-
-                    record
-
-                    for record in cleaned_records
-
-                    if record["invoice_id"]
-                    not in existing_invoice_ids
-                ]
+                new_records = cleaned_records
 
                 if new_records:
 
-                    result = (
-                        invoices_collection.insert_many(
+                    try:
+
+                        result = invoices_collection.insert_many(
                             new_records,
                             ordered=False
                         )
-                    )
 
-                    inserted_count += len(
-                        result.inserted_ids
-                    )
-
-                    # Update existing IDs set
-                    for record in new_records:
-
-                        existing_invoice_ids.add(
-                            record["invoice_id"]
+                        inserted_count += len(
+                            result.inserted_ids
                         )
+
+                    except BulkWriteError as error:
+
+                        inserted_count += (
+                            error.details.get(
+                                "nInserted",
+                                0
+                            )
+                        )
+
+                    
 
         else:
 
@@ -151,36 +140,48 @@ def process_uploaded_file(file):
                 cleaned_records
             )
 
-            new_records = [
-
-                record
-
-                for record in cleaned_records
-
-                if record["invoice_id"]
-                not in existing_invoice_ids
-            ]
+            new_records = cleaned_records
 
             if new_records:
 
-                result = (
-                    invoices_collection.insert_many(
+                try:
+
+                    result = invoices_collection.insert_many(
                         new_records,
                         ordered=False
                     )
-                )
 
-                inserted_count = len(
-                    result.inserted_ids
-                )
+                    inserted_count += len(
+                        result.inserted_ids
+                    )
+
+                except BulkWriteError as error:
+
+                    inserted_count += (
+                        error.details.get(
+                            "nInserted",
+                            0
+                        )
+                    )
 
         processing_time = round(
             time.time() - start_time,
             2
         )
 
+        records_per_second = 0
+
+        if processing_time > 0:
+
+            records_per_second = round(
+                total_records / processing_time,
+                2
+            )
+
         logger.info(
-            f"{inserted_count} invoices inserted successfully in {processing_time} seconds"
+            f"{inserted_count} invoices inserted in "
+            f"{processing_time} seconds "
+            f"({records_per_second} records/sec)"
         )
 
         upload_log = {
@@ -199,8 +200,11 @@ def process_uploaded_file(file):
             "inserted_records":
                 inserted_count,
 
-            "skipped_records":
-                total_records - inserted_count,
+            "duplicate_records":
+                cleaned_records - inserted_count,
+
+            "records_per_second":
+                records_per_second,
 
             "processing_time_seconds":
                 processing_time,
@@ -213,7 +217,10 @@ def process_uploaded_file(file):
             upload_log
         )
 
+    
+
         return {
+            "file_name": filename,
 
             "total_uploaded_records":
                 total_records,
@@ -224,8 +231,11 @@ def process_uploaded_file(file):
             "inserted_records":
                 inserted_count,
 
-            "skipped_records":
-                total_records - inserted_count,
+            "duplicate_records":
+                cleaned_records - inserted_count,
+
+            "records_per_second":
+                records_per_second,
 
             "processing_time_seconds":
                 processing_time
@@ -238,3 +248,11 @@ def process_uploaded_file(file):
         )
 
         raise error
+
+
+    finally:
+            
+
+            if os.path.exists(file_path):
+
+                os.remove(file_path)
