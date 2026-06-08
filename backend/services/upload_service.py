@@ -9,6 +9,9 @@ from utils.data_cleaner import clean_invoice_records
 
 from pymongo.errors import BulkWriteError
 
+from datetime import datetime
+import pytz
+
 from utils.chunk_processor import (
     process_csv_in_chunks
 )
@@ -184,12 +187,22 @@ def process_uploaded_file(file):
             f"({records_per_second} records/sec)"
         )
 
+        ist = pytz.timezone(
+            "Asia/Kolkata"
+        )
+
+        current_time = datetime.now(
+            ist
+        )
+
         upload_log = {
 
             "file_name": filename,
 
             "uploaded_at":
-                datetime.now(),
+                current_time.strftime(
+                    "%d-%m-%Y %I:%M:%S %p IST"
+                ),
 
             "total_records":
                 total_records,
@@ -201,7 +214,7 @@ def process_uploaded_file(file):
                 inserted_count,
 
             "duplicate_records":
-                cleaned_records - inserted_count,
+                cleaned_count - inserted_count,
 
             "records_per_second":
                 records_per_second,
@@ -232,7 +245,7 @@ def process_uploaded_file(file):
                 inserted_count,
 
             "duplicate_records":
-                cleaned_records - inserted_count,
+                cleaned_count - inserted_count,
 
             "records_per_second":
                 records_per_second,

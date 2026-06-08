@@ -502,11 +502,11 @@ def sort_invoice_data():
 @invoice_bp.route("/api/invoices/paginate", methods=["GET"])
 def paginate_invoice_data():
     """
-    Paginate Invoices
+    Pagination
     ---
     tags:
         - Invoice
-        
+
     parameters:
       - name: page
         in: query
@@ -522,19 +522,31 @@ def paginate_invoice_data():
     """
 
     try:
+
+        page = int(
+            request.args.get("page", 1)
+        )
+
+        limit = int(
+            request.args.get("limit", 20)
+        )
+
         if page < 1:
             page = 1
 
         if limit < 1 or limit > 100:
             limit = 20
 
-        invoices = paginate_invoices(page, limit)
+        invoices = paginate_invoices(
+            page,
+            limit
+        )
 
         return jsonify({
             "success": True,
             "page": page,
             "limit": limit,
-            "total_records": len(invoices),
+            "records_returned": len(invoices),
             "data": invoices
         })
 
@@ -544,7 +556,6 @@ def paginate_invoice_data():
             "success": False,
             "message": str(error)
         }), 500
-
 # Update invoice
 @invoice_bp.route(
     "/api/invoices/<invoice_id>",
