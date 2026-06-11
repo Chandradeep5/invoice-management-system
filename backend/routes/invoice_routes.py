@@ -750,7 +750,7 @@ def delete_all_invoice_data():
     Delete All Invoices
     ---
     tags:
-        - Invoice
+        - Delete Invoice
 
     parameters:
         - name: confirm
